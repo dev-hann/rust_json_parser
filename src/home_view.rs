@@ -1,45 +1,60 @@
-use eframe::{egui::{self}, App};
+use std::time::Duration;
 
+use eframe::{
+    egui::{self, Frame},
+    CreationContext,
+};
+use egui_notify::Toasts;
+
+#[derive(Default)]
 pub struct HomeView {
     input: String,
-    output:String,
+    error: Option<String>,
+    toasts: Toasts,
 }
 
-impl Default for HomeView {
-    fn default() -> Self {
-        return Self {
+impl HomeView {
+    pub fn new(_cc: &CreationContext<'_>) -> Self {
+        Self {
             input: r#"{"1234":"1234","a":{"b":{"c":"d"}}}"#.to_string(),
-            output: "".to_string(),
-        };
+            error: None,
+            toasts: Toasts::default(),
+        }
     }
 }
 
-impl App for HomeView {
+impl eframe::App for HomeView {
     fn update(&mut self, ctx: &eframe::egui::Context, frame: &mut eframe::Frame) {
-        let input = serde_json::from_str::<serde_json::Value>(&self.input);
-        self.output = serde_json::to_string_pretty(&input.unwrap()).unwrap();
-        
-        egui::CentralPanel::default().show(ctx, |ui| {
-        let available_size = ui.available_size();
-        let width = available_size.x * 0.5;
-        let height = available_size.y*0.9;
-            ui.heading("Json Parser");
-            ui.horizontal_top(|ui| {
-                ui.allocate_ui(egui::Vec2::new(width, height), |ui| {
+        egui::CentralPanel::default()
+            .frame(Frame::none().outer_margin(egui::Margin::same(16.0)))
+            .show(ctx, |ui| {
+                ui.heading("Json Parser");
+                ui.horizontal_top(|ui| {
                     ui.vertical(|ui| {
                         ui.label("Json Input");
-                        ui.add_sized([width, height], egui::TextEdit::multiline(&mut self.input));
+                        ui.horizontal_top(|ui| {
+                            if ui.button("format").clicked() {
+                                let input =
+                                    serde_json::from_str::<serde_json::Value>(&self.input).unwrap();
+                                let pretty = serde_json::to_string_pretty(&input);
+                                match pretty {
+                                    Ok(p) => self.input = p,
+                                    Err(e) => self.error = Some(e.to_string()),
+                                }
+                            };
+                            if ui.button("copy").clicked() {
+                                ui.output_mut(|o| o.copied_text = String::from(&self.input));
+                                self.toasts
+                                    .success("Copied to clipboard")
+                                    .show_progress_bar(false)
+                                    .duration(Some(Duration::from_secs(2)));
+                            };
+                        });
+                        ui.text_edit_multiline(&mut self.input);
                     });
                 });
-                ui.allocate_space(egui::Vec2::new(16.0, 16.0));
-                ui.allocate_ui(egui::Vec2::new(width, height), |ui| {
-                    ui.vertical(|ui| {
-                        ui.label("Json Output");
-                        ui.add_sized([width, height], egui::TextEdit::multiline(&mut self.output).interactive(false));
-                    });
-                });
+
+                self.toasts.show(ctx);
             });
-        });
     }
 }
-

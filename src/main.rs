@@ -1,11 +1,11 @@
 mod home_view;
-
-use home_view::HomeView;
-
+use eframe::egui;
+use eframe::Result;
 fn main() -> eframe::Result {
-    return eframe::run_native(
-        "JsonParser",
-        eframe::NativeOptions::default(),
-        Box::new(|_| Ok(Box::<HomeView>::default())),
-    );
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "JSON Parser App",
+        options,
+        Box::new(|c| Ok(Box::new(home_view::HomeView::new(c)))),
+    )
 }
