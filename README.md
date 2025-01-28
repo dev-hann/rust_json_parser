@@ -1,5 +1,7 @@
 # JSON Parser App
 
+![Image](https://github.com/user-attachments/assets/dde7cf93-1755-4ea0-a501-8e87dab3314b)
+
 ## Description
 The JSON Parser App is a simple desktop application built using Rust and the `eframe` framework. It allows users to input JSON data, format it for better readability, and copy the formatted JSON to the clipboard. The app provides a user-friendly interface with toast notifications for feedback.
 
